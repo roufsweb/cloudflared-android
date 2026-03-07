@@ -63,3 +63,14 @@ This project uses Gradle. To build the APK from source, follow these steps:
 ## 📜 License
 
 This project is not officially affiliated with Cloudflare. The `cloudflared` binary is licensed under the Apache License 2.0 by Cloudflare, Inc. The Android wrapper is provided as-is.
+
+---
+
+## ✨ Credits & Acknowledgements
+
+This application was developed by **[Rouf](https://rouf.top)** and proudly programmed with the assistance of **[Google DeepMind's Antigravity AI](https://deepmind.google/technologies/gemini/)**.
+
+### Connect with Rouf:
+*   🌐 **Website:** [rouf.top](https://rouf.top)
+*   🐙 **GitHub:** [@roufsweb](https://github.com/roufsweb)
+*   ✈️ **Telegram:** [@roufsweb](https://t.me/roufsweb)
