@@ -28,8 +28,10 @@ An unofficial Android application to run [Cloudflared](https://developers.cloudf
 2.  Navigate to **Networks > Tunnels**.
 3.  Click **Create a tunnel**. Provide a name and choose the Cloudflared connection type.
 4.  On the installation page, under the "Choose your environment" section, select any OS (like Debian/Ubuntu).
-5.  Look at the provided installation command. Extract the token string that appears after the `--token` flag. It is a long string of alphanumeric characters.
-6.  Copy this token and paste it into the Cloudflared Android app.
+5.  Look at the provided installation command in the code box. It will look something like this:
+    `cloudflared.exe service install eyJhIjoiOT...<very-long-string>...XDIifQ==`
+6.  The token is the **very long string of alphanumeric characters at the end of the command**. In the example above, it is the part starting with `eyJhIjoi...`.
+7.  **Copy ONLY this long token string** and paste it into the Cloudflared Android app. Do not copy the `cloudflared.exe service install` part.
 
 ## 🛠️ Building the APK
 
