@@ -19,6 +19,18 @@ android {
         }
     }
 
+    flavorDimensions += "version"
+
+    productFlavors {
+        create("root") {
+            dimension = "version"
+        }
+        create("nonroot") {
+            dimension = "version"
+            applicationIdSuffix = ".nonroot"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -44,6 +56,22 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            val flavor = flavorName
+            val fileName = if (flavor == "root") {
+                "cloudflared-rooted.apk"
+            } else {
+                "cloudflared-non-rooted.apk"
+            }
+            output.outputFileName = fileName
         }
     }
 }

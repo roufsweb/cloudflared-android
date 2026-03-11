@@ -146,7 +146,10 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                 onCheckedChange = {
                     autoStart = it
                     prefs.autoStart = it
-                    updateMagiskScript(context, it, prefs.startDelaySeconds)
+                    FlavorUtils.updateMagiskScript(context, it, prefs.startDelaySeconds)
+                    if (it) {
+                        FlavorUtils.requestBatteryOptimization(context)
+                    }
                 }
             )
         }
@@ -160,7 +163,7 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                 val delayNum = it.toIntOrNull() ?: 0
                 prefs.startDelaySeconds = delayNum
                 if (autoStart) {
-                    updateMagiskScript(context, true, delayNum)
+                    FlavorUtils.updateMagiskScript(context, true, delayNum)
                 }
             },
             label = { Text("Boot Delay (seconds)") },
@@ -192,27 +195,5 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                 color = Color.White
             )
         }
-    }
-}
-
-fun updateMagiskScript(context: android.content.Context, enabled: Boolean, delay: Int) {
-    try {
-        if (enabled) {
-            val scriptFile = java.io.File(context.filesDir, "cloudflared_autostart.sh")
-            val script = """
-                #!/system/bin/sh
-                while [ "${'$'}(getprop sys.boot_completed)" != "1" ]; do sleep 1; done
-                sleep $delay
-                am start-foreground-service -a com.rouf.cloudflared.START_WITH_DELAY -n com.rouf.cloudflared/.CloudflaredService
-            """.trimIndent()
-            scriptFile.writeText(script)
-            val command = arrayOf("su", "-c", "cp ${scriptFile.absolutePath} /data/adb/service.d/cloudflared_autostart.sh && chmod 755 /data/adb/service.d/cloudflared_autostart.sh")
-            Runtime.getRuntime().exec(command).waitFor()
-        } else {
-            val command = arrayOf("su", "-c", "rm -f /data/adb/service.d/cloudflared_autostart.sh")
-            Runtime.getRuntime().exec(command).waitFor()
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 }
