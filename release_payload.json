@@ -1,7 +1,0 @@
-{
-  "tag_name": "v1.1.0",
-  "name": "v1.1.0 - Stable Release",
-  "body": "Final release with both Rooted and Non-Rooted versions.\n\nChanges:\n- Added Non-Root support with improved boot reliability.\n- Added Battery Optimization prompt for Non-Root users.\n- Integrated WakeLock for stable daemon startup post-boot.\n- APKs renamed to cloudflared-rooted.apk and cloudflared-non-rooted.apk for clarity.",
-  "draft": false,
-  "prerelease": false
-}
