@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +27,7 @@ class CloudflaredService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     private var process: Process? = null
     private var isRunning = false
+    private var wakeLock: PowerManager.WakeLock? = null
 
     companion object {
         const val ACTION_START = "com.rouf.cloudflared.START"
@@ -73,6 +75,10 @@ class CloudflaredService : Service() {
 
         serviceScope.launch {
             try {
+                val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+                wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Cloudflared:RootDaemonLock")
+                wakeLock?.acquire(5 * 60 * 1000L) // Lock for 5 minutes max during startup
+
                 if (delaySeconds > 0) {
                     _status.value = "Waiting ${delaySeconds}s..."
                     delay(delaySeconds * 1000L)
@@ -88,6 +94,7 @@ class CloudflaredService : Service() {
                     _status.value = "Error: Token is empty"
                     isRunning = false
                     updateNotification("Error: Token is empty")
+                    wakeLock?.release()
                     return@launch
                 }
 
@@ -95,11 +102,9 @@ class CloudflaredService : Service() {
                 updateNotification("Connected")
 
                 // Execute cloudflared via root from /data/local/tmp
-                // Execute cloudflared via root from /data/local/tmp
                 // We patched the cloudflared binary to look for /data/local/resv instead of /etc/resolv.conf
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "echo nameserver 1.1.1.1 > /data/local/resv && echo nameserver 8.8.8.8 >> /data/local/resv && chmod 644 /data/local/resv")).waitFor()
 
-                
                 // Global flags: --no-autoupdate, --edge-ip-version 4, --protocol http2
                 // Command flags: run --token $token
                 val command = arrayOf("su", "-c", "${binaryFile.absolutePath} tunnel --no-autoupdate --edge-ip-version 4 --protocol http2 run --token $token")
@@ -120,6 +125,7 @@ class CloudflaredService : Service() {
                         if (line?.contains("Registered tunnel connection") == true) {
                             _status.value = "Connected"
                             updateNotification("Connected")
+                            if (wakeLock?.isHeld == true) wakeLock?.release()
                         } else if (line?.contains("failed to connect") == true) {
                             _status.value = "Connection Failed"
                             updateNotification("Connection Failed")
@@ -138,12 +144,14 @@ class CloudflaredService : Service() {
                     updateNotification("Disconnected")
                 }
                 isRunning = false
+                if (wakeLock?.isHeld == true) wakeLock?.release()
 
             } catch (e: Exception) {
                 e.printStackTrace()
                 _status.value = "Error: ${e.message}"
                 isRunning = false
                 updateNotification("Error: ${e.message}")
+                if (wakeLock?.isHeld == true) wakeLock?.release()
             }
         }
     }

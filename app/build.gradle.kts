@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.rouf.cloudflared"
-        minSdk = 28
+        minSdk = 21
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
