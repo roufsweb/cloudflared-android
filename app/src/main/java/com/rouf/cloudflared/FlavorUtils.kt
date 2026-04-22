@@ -8,7 +8,7 @@ import android.provider.Settings
 
 object FlavorUtils {
     fun updateMagiskScript(context: Context, enabled: Boolean, delay: Int) {
-        // No-op for non-root, it just relies on standard BootReceiver intents
+        // No-op in consolidated non-root version
     }
 
     fun requestBatteryOptimization(context: Context) {

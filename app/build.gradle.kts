@@ -10,24 +10,12 @@ android {
     defaultConfig {
         applicationId = "com.rouf.cloudflared"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 28
         versionCode = 1
         versionName = "1.0"
         
         vectorDrawables {
             useSupportLibrary = true
-        }
-    }
-
-    flavorDimensions += "version"
-
-    productFlavors {
-        create("root") {
-            dimension = "version"
-        }
-        create("nonroot") {
-            dimension = "version"
-            applicationIdSuffix = ".nonroot"
         }
     }
 
@@ -66,13 +54,7 @@ android {
     applicationVariants.all {
         outputs.all {
             val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
-            val flavor = flavorName
-            val fileName = if (flavor == "root") {
-                "cloudflared-rooted.apk"
-            } else {
-                "cloudflared-non-rooted.apk"
-            }
-            output.outputFileName = fileName
+            output.outputFileName = "cloudflared-android.apk"
         }
     }
 }
@@ -86,6 +68,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 }

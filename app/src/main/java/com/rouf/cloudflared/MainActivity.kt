@@ -14,6 +14,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,19 +27,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        // Permission handled
-    }
+    ) { isGranted: Boolean -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Request notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -84,11 +85,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopService: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var token by remember { mutableStateOf(prefs.token) }
     var autoStart by remember { mutableStateOf(prefs.autoStart) }
     var startDelay by remember { mutableStateOf(prefs.startDelaySeconds.toString()) }
     
     val status by CloudflaredService.status.collectAsState()
+    val updateStatus by UpdateManager.updateStatus.collectAsState()
 
     Column(
         modifier = Modifier
@@ -106,7 +109,48 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
             color = MaterialTheme.colorScheme.primary
         )
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Update Section
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Engine: ${prefs.binaryVersion}", fontSize = 12.sp, color = Color.LightGray)
+                    val statusText = when (val s = updateStatus) {
+                        is UpdateManager.UpdateStatus.Checking -> "Checking for updates..."
+                        is UpdateManager.UpdateStatus.NewVersionAvailable -> "New version available: ${s.version}"
+                        is UpdateManager.UpdateStatus.Downloading -> "Downloading..."
+                        is UpdateManager.UpdateStatus.Success -> "Updated! Restart service to apply."
+                        is UpdateManager.UpdateStatus.Error -> "Error: ${s.message}"
+                        is UpdateManager.UpdateStatus.UpToDate -> "Up to date"
+                        else -> "Last check: ${prefs.binaryVersion}"
+                    }
+                    Text(statusText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                }
+                
+                if (updateStatus is UpdateManager.UpdateStatus.NewVersionAvailable) {
+                    IconButton(onClick = { 
+                        val version = (updateStatus as UpdateManager.UpdateStatus.NewVersionAvailable).version
+                        scope.launch { UpdateManager.downloadUpdate(context, version) }
+                    }) {
+                        Icon(Icons.Default.ArrowCircleDown, contentDescription = "Download", tint = MaterialTheme.colorScheme.primary)
+                    }
+                } else {
+                    IconButton(onClick = { scope.launch { UpdateManager.checkForUpdates(context) } }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Check", tint = Color.Gray)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Status Card
         Card(
@@ -117,11 +161,11 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Status", color = Color.Gray)
+                Text("Tunnel Status", color = Color.Gray)
                 Spacer(modifier = Modifier.height(8.dp))
                 val statusColor = when {
                     status == "Connected" -> Color(0xFF4CAF50)
-                    status.startsWith("Error") -> Color(0xFFF44336)
+                    status.startsWith("Error") || status.startsWith("Exited") -> Color(0xFFF44336)
                     status == "Disconnected" -> Color.Gray
                     else -> Color(0xFFFFC107)
                 }
@@ -134,12 +178,11 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
             value = token,
             onValueChange = { 
-                // Auto-extract token if they paste the full command
                 val extractedToken = it.replace("sudo cloudflared service install ", "")
                   .replace("cloudflared.exe service install ", "")
                   .trim()
@@ -164,10 +207,7 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                 onCheckedChange = {
                     autoStart = it
                     prefs.autoStart = it
-                    FlavorUtils.updateMagiskScript(context, it, prefs.startDelaySeconds)
-                    if (it) {
-                        FlavorUtils.requestBatteryOptimization(context)
-                    }
+                    if (it) FlavorUtils.requestBatteryOptimization(context)
                 }
             )
         }
@@ -180,9 +220,6 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                 startDelay = it
                 val delayNum = it.toIntOrNull() ?: 0
                 prefs.startDelaySeconds = delayNum
-                if (autoStart) {
-                    FlavorUtils.updateMagiskScript(context, true, delayNum)
-                }
             },
             label = { Text("Boot Delay (seconds)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

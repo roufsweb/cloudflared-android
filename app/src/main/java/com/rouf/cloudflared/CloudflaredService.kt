@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -26,6 +27,7 @@ class CloudflaredService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     private var process: Process? = null
     private var isRunning = false
+    private var wakeLock: PowerManager.WakeLock? = null
 
     companion object {
         const val ACTION_START = "com.rouf.cloudflared.START"
@@ -41,6 +43,13 @@ class CloudflaredService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        
+        // Collect status and update notification in real-time
+        serviceScope.launch {
+            _status.collect { newStatus ->
+                updateNotification(newStatus)
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -48,17 +57,30 @@ class CloudflaredService : Service() {
 
         when (action) {
             ACTION_START -> {
-                startForeground(NOTIFICATION_ID, createNotification("Starting..."))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(NOTIFICATION_ID, createNotification("Starting..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                } else {
+                    startForeground(NOTIFICATION_ID, createNotification("Starting..."))
+                }
                 startDaemon(delaySeconds = 0)
             }
             ACTION_START_WITH_DELAY -> {
                 val prefs = AppPreferences(this)
                 val delaySeconds = prefs.startDelaySeconds
-                startForeground(NOTIFICATION_ID, createNotification("Waiting ${delaySeconds}s to start..."))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(NOTIFICATION_ID, createNotification("Waiting ${delaySeconds}s..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                } else {
+                    startForeground(NOTIFICATION_ID, createNotification("Waiting ${delaySeconds}s to start..."))
+                }
                 startDaemon(delaySeconds)
             }
             ACTION_STOP -> {
                 stopDaemon()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    // If we were started with startForegroundService, we MUST call startForeground
+                    // even if we are about to stop, to avoid a crash on some Android versions.
+                    startForeground(NOTIFICATION_ID, createNotification("Stopping..."))
+                }
                 stopForeground(true)
                 stopSelf()
             }
@@ -66,8 +88,6 @@ class CloudflaredService : Service() {
 
         return START_STICKY
     }
-
-    private var wakeLock: PowerManager.WakeLock? = null
 
     private fun startDaemon(delaySeconds: Int) {
         if (isRunning) return
@@ -90,40 +110,35 @@ class CloudflaredService : Service() {
                 if (token.isBlank()) {
                     _status.value = "Error: Token is empty"
                     isRunning = false
-                    updateNotification("Error: Token is empty")
                     wakeLock?.release()
                     return@launch
                 }
 
                 _status.value = "Connecting..."
-                updateNotification("Connected")
 
-                // Write custom dns to local app dir for the patched binary
-                val dnsFile = File(filesDir, "r.conf")
-                dnsFile.writeText("nameserver 1.1.1.1\nnameserver 8.8.8.8\n")
-                
-                // Locate library
-                val nativeDir = applicationInfo.nativeLibraryDir
-                val binaryFile = File(nativeDir, "libcloudflared.so")
-                
-                if (!binaryFile.exists()) {
-                     _status.value = "Error: Binary not found at $nativeDir"
-                     isRunning = false
-                     updateNotification("Error: Binary not found")
-                     wakeLock?.release()
-                     return@launch
+                val storageContext = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    createDeviceProtectedStorageContext()
+                } else {
+                    this@CloudflaredService
                 }
 
-                Log.d("CloudflaredDaemon", "Starting binary: ${binaryFile.absolutePath}")
-                val command = arrayOf(binaryFile.absolutePath, "tunnel", "--no-autoupdate", "--edge-ip-version", "4", "--protocol", "http2", "run", "--token", token)
+                // Write custom dns to local app dir
+                val dnsFile = File(storageContext.filesDir, "resolv.conf")
+                dnsFile.writeText("nameserver 1.1.1.1\nnameserver 8.8.8.8\n")
+                
+                val binaryPath = UpdateManager.getExecutablePath(storageContext)
+                Log.d("CloudflaredDaemon", "Starting binary: $binaryPath")
+                
+                val command = arrayOf(binaryPath, "tunnel", "--no-autoupdate", "--edge-ip-version", "4", "--protocol", "http2", "run", "--token", token)
                 val processBuilder = ProcessBuilder(*command)
-                processBuilder.redirectInput(dnsFile) // Pass r.conf via stdin for //proc/self/fd/0
+                val env = processBuilder.environment()
+                env["GODEBUG"] = "netdns=go"
+                processBuilder.redirectInput(dnsFile)
                 processBuilder.redirectErrorStream(true)
                 
                 process = processBuilder.start()
 
                 var lastLine = ""
-                // Read output to keep process buffers clear
                 process?.inputStream?.bufferedReader()?.use { reader ->
                     var line: String?
                     while (reader.readLine().also { line = it } != null) {
@@ -133,27 +148,30 @@ class CloudflaredService : Service() {
                         }
                         if (line?.contains("Registered tunnel connection") == true) {
                             _status.value = "Connected"
-                            updateNotification("Connected")
-                            // We are connected, can release wakelock early if we want, 
-                            // but usually it's better to keep it a bit or let system handle it.
-                            if (wakeLock?.isHeld == true) wakeLock?.release()
+                            // Ensure we have a wakelock while connected
+                            if (wakeLock?.isHeld == false) wakeLock?.acquire()
                         } else if (line?.contains("failed to connect") == true) {
                             _status.value = "Connection Failed"
-                            updateNotification("Connection Failed")
                         }
                     }
                 }
 
                 val exitCode = process?.waitFor() ?: -1
                 Log.d("CloudflaredDaemon", "Process exited with $exitCode")
-                if (_status.value != "Connected" && _status.value != "Disconnected" && _status.value != "Disconnecting...") {
-                    // It failed to connect or exited prematurely
-                    val shortFormat = lastLine.takeLast(40)
-                    _status.value = "Exited ($exitCode): $shortFormat"
-                    updateNotification("Exited ($exitCode)")
-                } else {
-                    _status.value = "Disconnected"
-                    updateNotification("Disconnected")
+                
+                // Only update status and notification if we weren't intentionally stopping
+                if (isRunning) {
+                    if (lastLine.contains("interrupted") || lastLine.contains("closed")) {
+                        _status.value = "Cloudflared Stopped"
+                        updateNotification("Cloudflared Stopped")
+                    } else if (_status.value != "Connected" && _status.value != "Disconnected" && _status.value != "Disconnecting...") {
+                        val shortFormat = lastLine.takeLast(40)
+                        _status.value = "Exited ($exitCode): $shortFormat"
+                        updateNotification("Exited ($exitCode)")
+                    } else {
+                        _status.value = "Cloudflared Stopped"
+                        updateNotification("Cloudflared Stopped")
+                    }
                 }
                 isRunning = false
 
@@ -171,11 +189,14 @@ class CloudflaredService : Service() {
 
     private fun stopDaemon() {
         if (!isRunning) return
+        isRunning = false // Set this first to prevent the loop from updating status
         _status.value = "Disconnecting..."
         serviceScope.launch {
             process?.destroy()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                process?.destroyForcibly()
+            }
             process = null
-            isRunning = false
             _status.value = "Disconnected"
         }
     }
@@ -185,7 +206,7 @@ class CloudflaredService : Service() {
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Cloudflared Service",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             )
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
@@ -194,24 +215,19 @@ class CloudflaredService : Service() {
 
     private fun createNotification(contentText: String): Notification {
         val notificationIntent = Intent(this, MainActivity::class.java)
-        // Use mutability flags appropriate for API 28+
-        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.getActivity(
-                this, 0, notificationIntent,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            )
-        } else {
-            PendingIntent.getActivity(
-                this, 0, notificationIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT
-            )
-        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, notificationIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Cloudflared")
             .setContentText(contentText)
-            .setSmallIcon(android.R.drawable.ic_secure) // Default built-in system icon for now
+            .setSmallIcon(android.R.drawable.ic_secure)
             .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setOngoing(true)
             .build()
     }
 
