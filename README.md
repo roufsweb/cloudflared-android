@@ -35,6 +35,7 @@ Ready-to-install application packages are published under [Releases](https://git
 
 * **Standard Non-Root Execution:** Runs completely inside the standard unprivileged Android app sandbox. No superuser, Magisk, or custom ROMs required.
 * **Universal Token Parser:** Automatically extracts and validates Base64 tokens from any command copied from the Cloudflare dashboard (Windows `.exe`, Linux `sudo`, Docker, or raw token) with one-tap clipboard paste.
+* **Integrated Engine Updates:** Checks upstream Cloudflare releases and applies binary updates and kernel patches with a single tap in the app.
 * **In-App Usage Instructions:** Built-in collapsible guide detailing token creation, background battery whitelist steps, and public hostname routing.
 * **Kernel Stdin DNS Patching:** Overcomes Android's absence of `/etc/resolv.conf` by routing the Go runtime pure-Go resolver via `//proc/self/fd/0` with built-in upstream resolvers (1.1.1.1, 8.8.8.8).
 * **Direct Boot Compatibility:** Utilizes `LOCKED_BOOT_COMPLETED` broadcast receivers to resume tunnel connections automatically after a system reboot, even before first user unlock.

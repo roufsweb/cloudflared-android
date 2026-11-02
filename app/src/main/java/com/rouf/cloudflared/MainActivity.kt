@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,7 +60,18 @@ class MainActivity : ComponentActivity() {
         val prefs = AppPreferences(this)
 
         setContent {
-            MaterialTheme {
+            MaterialTheme(
+                colorScheme = darkColorScheme(
+                    primary = Color(0xFFF6821F), // Cloudflare Orange
+                    onPrimary = Color.White,
+                    background = Color(0xFF131418),
+                    surface = Color(0xFF1B1E26),
+                    onSurface = Color(0xFFE4E7EE),
+                    surfaceVariant = Color(0xFF242833),
+                    onSurfaceVariant = Color(0xFFA0A7B8),
+                    outline = Color(0xFF383E4E)
+                )
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -164,40 +176,115 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
         
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Update Section
+        // Engine Update Section
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Row(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Engine: ${prefs.binaryVersion}", fontSize = 12.sp, color = Color.LightGray)
+                    val displayEngine = if (prefs.binaryVersion == "bundled") "Bundled (ARM64)" else prefs.binaryVersion
+                    Text(
+                        text = "Engine: $displayEngine",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
                     val statusText = when (val s = updateStatus) {
                         is UpdateManager.UpdateStatus.Checking -> "Checking for updates..."
-                        is UpdateManager.UpdateStatus.NewVersionAvailable -> "New version available: ${s.version}"
-                        is UpdateManager.UpdateStatus.Downloading -> "Downloading..."
-                        is UpdateManager.UpdateStatus.Success -> "Updated! Restart service to apply."
+                        is UpdateManager.UpdateStatus.NewVersionAvailable -> "New version: ${s.version}"
+                        is UpdateManager.UpdateStatus.Downloading -> "Downloading update..."
+                        is UpdateManager.UpdateStatus.Success -> "Updated! Restart service."
                         is UpdateManager.UpdateStatus.Error -> "Error: ${s.message}"
-                        is UpdateManager.UpdateStatus.UpToDate -> "Up to date"
-                        else -> "Last check: ${prefs.binaryVersion}"
+                        is UpdateManager.UpdateStatus.UpToDate -> "Engine is up to date"
+                        else -> "Check upstream release"
                     }
-                    Text(statusText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        text = statusText,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
                 
-                if (updateStatus is UpdateManager.UpdateStatus.NewVersionAvailable) {
-                    IconButton(onClick = { 
-                        val version = (updateStatus as UpdateManager.UpdateStatus.NewVersionAvailable).version
-                        scope.launch { UpdateManager.downloadUpdate(context, version) }
-                    }) {
-                        Icon(Icons.Default.ArrowCircleDown, contentDescription = "Download", tint = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(8.dp))
+
+                when (val s = updateStatus) {
+                    is UpdateManager.UpdateStatus.NewVersionAvailable -> {
+                        Button(
+                            onClick = { scope.launch { UpdateManager.downloadUpdate(context, s.version) } },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowCircleDown,
+                                contentDescription = "Update",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Update Engine", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
-                } else {
-                    IconButton(onClick = { scope.launch { UpdateManager.checkForUpdates(context) } }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Check", tint = Color.Gray)
+                    is UpdateManager.UpdateStatus.Downloading -> {
+                        OutlinedButton(
+                            onClick = {},
+                            enabled = false,
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Updating...", fontSize = 12.sp)
+                        }
+                    }
+                    is UpdateManager.UpdateStatus.Checking -> {
+                        OutlinedButton(
+                            onClick = {},
+                            enabled = false,
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Checking...", fontSize = 12.sp)
+                        }
+                    }
+                    else -> {
+                        OutlinedButton(
+                            onClick = { scope.launch { UpdateManager.checkForUpdates(context) } },
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Check for Updates",
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Check Update", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }
