@@ -18,11 +18,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,46 +59,46 @@ class MainActivity : ComponentActivity() {
         val prefs = AppPreferences(this)
 
         setContent {
-            MaterialTheme(
-                colorScheme = darkColorScheme(
-                    primary = Color(0xFFF6821F), // Cloudflare Orange
-                    background = Color(0xFF1E1E1E),
-                    surface = Color(0xFF2D2D2D)
-                )
-            ) {
+            MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CloudflaredApp(prefs, onStartService = {
-                        val intent = Intent(this, CloudflaredService::class.java)
-                        intent.action = CloudflaredService.ACTION_START
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            startForegroundService(intent)
-                        } else {
+                    CloudflaredApp(
+                        prefs = prefs,
+                        onStartService = {
+                            val intent = Intent(this, CloudflaredService::class.java).apply {
+                                action = CloudflaredService.ACTION_START
+                            }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                startForegroundService(intent)
+                            } else {
+                                startService(intent)
+                            }
+                        },
+                        onStopService = {
+                            val intent = Intent(this, CloudflaredService::class.java).apply {
+                                action = CloudflaredService.ACTION_STOP
+                            }
                             startService(intent)
                         }
-                    }, onStopService = {
-                        val intent = Intent(this, CloudflaredService::class.java)
-                        intent.action = CloudflaredService.ACTION_STOP
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            startForegroundService(intent)
-                        } else {
-                            startService(intent)
-                        }
-                    })
+                    )
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopService: () -> Unit) {
     val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
+
+    var showInstructions by remember { mutableStateOf(false) }
     var token by remember { mutableStateOf(prefs.token) }
+    val tokenInfo = remember(token) { TunnelTokenParser.parseTokenInfo(token) }
+
     var autoStart by remember { mutableStateOf(prefs.autoStart) }
     var startDelay by remember { mutableStateOf(prefs.startDelaySeconds.toString()) }
     
@@ -116,7 +125,6 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                     showPermissionDialog = false
                     if (permissionType == "notification") {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                             // This is handled in MainActivity usually, but for simplicity here:
                              val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                                  putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                                  addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -145,7 +153,7 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         
         Text(
             text = "Cloudflared",
@@ -195,7 +203,7 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Status Card
         Card(
@@ -223,21 +231,156 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // How to Use Instructions Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Instructions",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "How to Use",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp
+                        )
+                    }
+                    IconButton(
+                        onClick = { showInstructions = !showInstructions },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (showInstructions) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (showInstructions) "Collapse" else "Expand"
+                        )
+                    }
+                }
+
+                if (showInstructions) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "1. Open one.dash.cloudflare.com > Networks > Tunnels\n" +
+                               "2. Click 'Add a tunnel', choose Cloudflared, and name it\n" +
+                               "3. Copy the installation command from any environment (Windows, Linux, or Docker)\n" +
+                               "4. Paste it directly below - the token will be extracted automatically!\n" +
+                               "5. Tap 'Connect Tunnel' and map your public hostname to localhost:8080",
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Smart Tunnel Token Input
         OutlinedTextField(
             value = token,
-            onValueChange = { 
-                val extractedToken = it.replace("sudo cloudflared service install ", "")
-                  .replace("cloudflared.exe service install ", "")
-                  .trim()
-                token = extractedToken
-                prefs.token = extractedToken
+            onValueChange = { raw -> 
+                val extracted = TunnelTokenParser.extractToken(raw)
+                token = extracted
+                prefs.token = extracted
             },
             label = { Text("Tunnel Token") },
+            placeholder = { Text("Paste token or full command...") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.VpnKey,
+                    contentDescription = "Token Key",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            trailingIcon = {
+                if (token.isNotEmpty()) {
+                    IconButton(onClick = {
+                        token = ""
+                        prefs.token = ""
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Clear Token"
+                        )
+                    }
+                } else {
+                    IconButton(onClick = {
+                        val clipText = clipboardManager.getText()?.text
+                        if (!clipText.isNullOrBlank()) {
+                            val extracted = TunnelTokenParser.extractToken(clipText)
+                            token = extracted
+                            prefs.token = extracted
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.ContentPaste,
+                            contentDescription = "Paste from Clipboard",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            maxLines = 3,
+            shape = RoundedCornerShape(12.dp)
         )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Token Validation & Format Helper
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            if (token.isEmpty()) {
+                Text(
+                    text = "Supports pure token or any command (Windows, Linux, Docker)",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            } else if (tokenInfo != null) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Valid",
+                    tint = Color(0xFF4CAF50),
+                    modifier = Modifier.size(15.dp)
+                )
+                Text(
+                    text = "Valid Token • ${tokenInfo.summary}",
+                    fontSize = 12.sp,
+                    color = Color(0xFF4CAF50),
+                    fontWeight = FontWeight.Medium
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Unverified",
+                    tint = Color(0xFFFF9800),
+                    modifier = Modifier.size(15.dp)
+                )
+                Text(
+                    text = "Custom / Unverified token format (${token.length} chars)",
+                    fontSize = 12.sp,
+                    color = Color(0xFFFF9800)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -275,10 +418,11 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
             label = { Text("Boot Delay (seconds)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         val isConnected = status == "Connected" || status.startsWith("Waiting") || status.startsWith("Extracting") || status.startsWith("Connecting")
         

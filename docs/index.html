@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloudflared for Android – Native Cloudflare Zero Trust Tunnel Client</title>
-  <meta name="description" content="High-performance native Cloudflare Tunnel (cloudflared) client for Android without root. Expose Termux web servers, local APIs, and homelab services to the internet securely.">
+  <meta name="description" content="High-performance native Cloudflare Tunnel (cloudflared) client for Android without root. Universal token parser supporting Windows, Linux, Docker commands, and raw tokens.">
   <meta name="keywords" content="cloudflared android, cloudflare tunnel android, cloudflare zero trust android apk, termux cloudflared, ngrok alternative android, expose localhost android, non root cloudflare tunnel">
   <meta name="author" content="roufsweb">
   <link rel="icon" type="image/png" href="icon.png">
@@ -14,14 +14,14 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://roufsweb.github.io/cloudflared-android/">
   <meta property="og:title" content="Cloudflared for Android – Native Zero Trust Tunnel Client">
-  <meta property="og:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Expose local web servers, Termux, and IoT services securely.">
+  <meta property="og:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Universal input parser accepts Windows, Linux, and Docker commands directly.">
   <meta property="og:image" content="https://roufsweb.github.io/cloudflared-android/app-ui.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://roufsweb.github.io/cloudflared-android/">
   <meta property="twitter:title" content="Cloudflared for Android – Native Zero Trust Tunnel Client">
-  <meta property="twitter:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Expose local web servers, Termux, and IoT services securely.">
+  <meta property="twitter:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Universal input parser accepts Windows, Linux, and Docker commands directly.">
   <meta property="twitter:image" content="https://roufsweb.github.io/cloudflared-android/app-ui.png">
 
   <!-- Structured Data / JSON-LD -->
@@ -38,7 +38,7 @@
       "price": "0",
       "priceCurrency": "USD"
     },
-    "description": "Native implementation of Cloudflare Tunnel (cloudflared) for Android without root.",
+    "description": "Native implementation of Cloudflare Tunnel (cloudflared) for Android without root with universal command input support.",
     "downloadUrl": "https://github.com/roufsweb/cloudflared-android/releases",
     "author": {
       "@type": "Person",
@@ -541,9 +541,9 @@
     <div class="container">
       <div class="hero-grid">
         <div class="hero-text">
-          <div class="badge-pill">Native &bull; Non-Root &bull; Android 5.0 to 15</div>
+          <div class="badge-pill">Native &bull; Non-Root &bull; Universal Input Parser</div>
           <h1>Expose Local Android Servers to the Internet with <span>Cloudflare Zero Trust</span></h1>
-          <p>A native, high-performance wrapper for Cloudflare Tunnel (cloudflared). Host Termux servers, local APIs, and homelab nodes on Android without root, PRoot, or port forwarding.</p>
+          <p>A native, high-performance wrapper for Cloudflare Tunnel (cloudflared). Paste any command from Cloudflare (Windows, Linux, or Docker) and the app automatically extracts and connects your tunnel without root or port forwarding.</p>
           
           <div class="hero-actions">
             <a href="https://github.com/roufsweb/cloudflared-android/releases" class="btn-primary" target="_blank" rel="noopener">
@@ -573,6 +573,10 @@
     <div class="container">
       <div class="features">
         <div class="feature-card">
+          <div class="feature-title">Universal Command Input</div>
+          <div class="feature-desc">Paste entire Cloudflare commands directly (<code>cloudflared.exe service install...</code>, <code>sudo cloudflared...</code>, or Docker commands). The app automatically strips wrappers and extracts the clean token.</div>
+        </div>
+        <div class="feature-card">
           <div class="feature-title">No Root Required</div>
           <div class="feature-desc">Executes within the standard Android application sandbox. No Magisk, superuser, or custom kernels needed.</div>
         </div>
@@ -589,12 +593,8 @@
           <div class="feature-desc">Establishes secure outbound QUIC and HTTP/2 connections to Cloudflare Edge. No router port forwarding required.</div>
         </div>
         <div class="feature-card">
-          <div class="feature-title">24/7 Background Uptime</div>
-          <div class="feature-desc">Foreground service architecture with WakeLock and battery optimization handling to prevent OS termination.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-title">Termux Ready</div>
-          <div class="feature-desc">Expose web servers, Flask, Node.js, and Python microservices hosted locally in Termux directly to custom domains.</div>
+          <div class="feature-title">Live Token Verification</div>
+          <div class="feature-desc">Instantly validates your Base64 token on paste, verifies the JSON structure, and displays your Tunnel ID preview before connecting.</div>
         </div>
       </div>
     </div>
@@ -620,18 +620,18 @@
           <div class="ui-callouts">
             <div class="ui-callout-item">
               <div class="ui-callout-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
-                Real-Time Tunnel Telemetry
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                Universal Input & Smart Parser
               </div>
-              <div class="ui-callout-desc">The high-contrast status card provides live feedback showing connection states: Connected, Disconnected, or Error diagnostics.</div>
+              <div class="ui-callout-desc">Paste whatever Cloudflare gives you: Windows CMD, PowerShell, Linux sudo, or Docker scripts. The parser isolates the Base64 token, strips quotes, and validates the Account & Tunnel IDs.</div>
             </div>
 
             <div class="ui-callout-item">
               <div class="ui-callout-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-                Smart Token Sanitization
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                Real-Time Tunnel Telemetry
               </div>
-              <div class="ui-callout-desc">Automatically strips command line wrappers like <code>cloudflared service install</code> and extracts your clean Base64 token on paste.</div>
+              <div class="ui-callout-desc">The high-contrast status card provides live feedback showing connection states: Connected (green), Disconnected, or Error diagnostics with active protocol details.</div>
             </div>
 
             <div class="ui-callout-item">
@@ -639,15 +639,15 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 Direct Boot & Configurable Delay
               </div>
-              <div class="ui-callout-desc">Enable "Start on Boot" with customizable delay in seconds to ensure Wi-Fi or LTE networks are fully initialized before connection.</div>
+              <div class="ui-callout-desc">Enable "Start on Boot" with customizable delay in seconds to ensure Wi-Fi or LTE networks are fully initialized before the tunnel connection is established.</div>
             </div>
 
             <div class="ui-callout-item">
               <div class="ui-callout-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-                Integrated Engine Updates
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                One-Tap Clipboard Paste & Clear
               </div>
-              <div class="ui-callout-desc">Checks for upstream Cloudflare releases and applies binary updates with a single tap directly within the app.</div>
+              <div class="ui-callout-desc">Tap the clipboard icon inside the input field to paste directly from your clipboard, or tap the clear button to reset your token in a single click.</div>
             </div>
           </div>
         </div>
@@ -668,17 +668,23 @@
             <div class="step-content">
               <h3>Create a Tunnel in Cloudflare Zero Trust</h3>
               <p>Log in to the <a href="https://one.dash.cloudflare.com/" target="_blank" rel="noopener" style="color: var(--accent-blue);">Cloudflare Zero Trust Dashboard</a>. Go to <strong>Networks</strong> &gt; <strong>Tunnels</strong> &gt; <strong>Add a tunnel</strong>.</p>
-              <p>Select <strong>Cloudflared</strong>, enter a name, and under <em>Install and run a connector</em>, copy the <code>--token</code> value from the command line:</p>
-              <pre><code>cloudflared.exe service install eyJhIjoiYmNmNGM3...</code></pre>
+              <p>Select <strong>Cloudflared</strong>, enter a name, and under <em>Install and run a connector</em>, copy the command line from <strong>any</strong> operating system (Windows, Linux, or Docker):</p>
+              <pre><code># You can copy the entire command as-is:
+cloudflared.exe service install eyJhIjoiMzEyNDZl...
+# OR
+sudo cloudflared service install eyJhIjoiMzEyNDZl...
+# OR
+docker run cloudflare/cloudflared tunnel --no-autoupdate run --token eyJh...</code></pre>
             </div>
           </div>
 
           <div class="step-card">
             <div class="step-number">2</div>
             <div class="step-content">
-              <h3>Install App &amp; Paste Token</h3>
-              <p>Install <code>cloudflared-android.apk</code> on your device. Open the app, paste your base64 token into the <strong>Tunnel Token</strong> field, and tap <strong>Connect Tunnel</strong>.</p>
-              <p>Grant <strong>Notification Permission</strong> and approve the prompt to <strong>Ignore Battery Optimizations</strong> so Android does not suspend the background service.</p>
+              <h3>Paste into the App</h3>
+              <p>Install <code>cloudflared-android.apk</code> on your device. Open the app and paste what you copied into the <strong>Tunnel Token</strong> field (or tap the <strong>Paste from Clipboard</strong> icon).</p>
+              <p>The app will automatically detect and extract the token, validate its structure, and show a green confirmation badge with your <strong>Tunnel ID</strong>.</p>
+              <p>Tap <strong>Connect Tunnel</strong>, grant <strong>Notification Permission</strong>, and approve the battery optimization exemption when prompted.</p>
             </div>
           </div>
 
@@ -791,6 +797,10 @@ python3 -m http.server 8080
         </div>
 
         <div class="faq-list">
+          <div class="faq-item">
+            <h4>Can I paste the entire command from Cloudflare?</h4>
+            <p>Yes. The app features a smart universal input parser. You can paste <code>cloudflared.exe service install &lt;token&gt;</code>, <code>sudo cloudflared service install &lt;token&gt;</code>, Docker commands, or raw tokens. The app will automatically isolate, clean, and validate the token.</p>
+          </div>
           <div class="faq-item">
             <h4>Does this application require root access?</h4>
             <p>No. Cloudflared for Android operates completely within the unprivileged Android application sandbox. It uses custom stdin descriptor redirection to provide DNS resolution natively without superuser rights.</p>

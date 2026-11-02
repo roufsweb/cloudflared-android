@@ -34,10 +34,38 @@ Ready-to-install application packages are published under [Releases](https://git
 ## Key Capabilities
 
 * **Standard Non-Root Execution:** Runs completely inside the standard unprivileged Android app sandbox. No superuser, Magisk, or custom ROMs required.
+* **Universal Token Parser:** Automatically extracts and validates Base64 tokens from any command copied from the Cloudflare dashboard (Windows `.exe`, Linux `sudo`, Docker, or raw token) with one-tap clipboard paste.
+* **In-App Usage Instructions:** Built-in collapsible guide detailing token creation, background battery whitelist steps, and public hostname routing.
 * **Kernel Stdin DNS Patching:** Overcomes Android's absence of `/etc/resolv.conf` by routing the Go runtime pure-Go resolver via `//proc/self/fd/0` with built-in upstream resolvers (1.1.1.1, 8.8.8.8).
 * **Direct Boot Compatibility:** Utilizes `LOCKED_BOOT_COMPLETED` broadcast receivers to resume tunnel connections automatically after a system reboot, even before first user unlock.
 * **Foreground Service Persistence:** Operates as an Android high-priority foreground service (`dataSync` type) with partial WakeLock management to withstand aggressive OEM task termination.
 * **Firewall & CGNAT Bypass:** Outbound encrypted connections over QUIC (port 7844) or HTTP/2 (port 443) bypass carrier-grade NAT and restrictive ISP firewalls.
+
+---
+
+## Universal Token Input Support
+
+The application features a built-in token parser (`TunnelTokenParser`). When configuring a tunnel in the Cloudflare Zero Trust Dashboard, users can copy the full installation command provided under **any** operating system tab and paste it directly into the application. The parser strips executable names, sudo wrappers, CLI flags, quotes, and whitespace, isolating only the valid token payload:
+
+| Source Format | Example Input Copied from Dashboard | App Parsing Behavior |
+|:---|:---|:---|
+| **Windows Command** | `cloudflared.exe service install eyJhIjoi...` | Automatically strips `cloudflared.exe service install` and extracts token |
+| **Linux Command** | `sudo cloudflared service install eyJhIjoi...` | Automatically strips `sudo cloudflared service install` and extracts token |
+| **Docker Command** | `docker run cloudflare/cloudflared:latest tunnel --token eyJhIjoi...` | Automatically isolates `--token` parameter value and strips flags |
+| **PowerShell / Paths** | `.\cloudflared.exe service install "eyJhIjoi..."` | Cleans quotation marks, relative execution prefixes, and arguments |
+| **Raw Base64 Token** | `eyJhIjoiMzEyNDZl...` | Trims whitespace, line breaks, and extraneous characters |
+| **One-Tap Clipboard** | *(Tap the clipboard icon inside the input field)* | Fetches system clipboard and auto-parses contents directly |
+
+### Token Structure & Real-Time Validation
+Cloudflare Zero Trust tunnel tokens are Base64-encoded JSON objects containing account metadata:
+```json
+{
+  "a": "<account_id>",
+  "t": "<tunnel_id>",
+  "s": "<secret>"
+}
+```
+Upon paste or typing, the application instantly verifies the Base64 structure, parses the `a` and `t` keys, and displays a live validation badge with the detected **Tunnel ID** (`Valid Token • Tunnel: <id>...`) so you can be confident your token is valid before starting the connection.
 
 ---
 
@@ -72,14 +100,16 @@ Standard Go binaries fail on Android because Android's Bionic C library does not
 1. Open the [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/).
 2. Navigate to **Networks** > **Tunnels** > **Add a tunnel**.
 3. Select **Cloudflared** and name your tunnel.
-4. Under **Install and run a connector**, select any operating system and copy the `--token` value from the provided command:
-   ```text
-   eyJhIjoiYmNm... (Your Base64 Token)
+4. Under **Install and run a connector**, copy the command provided under any OS tab (Windows, Linux, or Docker), or copy just the token string:
+   ```bash
+   cloudflared.exe service install eyJhIjoiMzEyNDZl...
+   # or
+   sudo cloudflared service install eyJhIjoiMzEyNDZl...
    ```
 
 ### Step 2: Connect the Android App
 1. Install and launch `cloudflared-android.apk`.
-2. Paste your token into the **Tunnel Token** input.
+2. Tap the **Paste from Clipboard** icon in the **Tunnel Token** field (or paste manually). The app extracts and validates the token automatically, displaying a green confirmation badge with your Tunnel ID.
 3. Tap **Connect Tunnel**.
 4. Grant notification permission and allow the battery optimization exemption when prompted.
 
