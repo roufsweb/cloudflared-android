@@ -23,6 +23,14 @@ Ready-to-install application packages are published under [Releases](https://git
 
 ---
 
+## Application Interface
+
+<p align="center">
+  <img src="docs/app-ui.png" width="280" alt="Cloudflared for Android Application Interface" />
+</p>
+
+---
+
 ## Key Capabilities
 
 * **Standard Non-Root Execution:** Runs completely inside the standard unprivileged Android app sandbox. No superuser, Magisk, or custom ROMs required.

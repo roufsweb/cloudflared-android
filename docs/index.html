@@ -7,6 +7,7 @@
   <meta name="description" content="High-performance native Cloudflare Tunnel (cloudflared) client for Android without root. Expose Termux web servers, local APIs, and homelab services to the internet securely.">
   <meta name="keywords" content="cloudflared android, cloudflare tunnel android, cloudflare zero trust android apk, termux cloudflared, ngrok alternative android, expose localhost android, non root cloudflare tunnel">
   <meta name="author" content="roufsweb">
+  <link rel="icon" type="image/png" href="icon.png">
   <link rel="canonical" href="https://roufsweb.github.io/cloudflared-android/">
 
   <!-- Open Graph / Facebook -->
@@ -14,12 +15,14 @@
   <meta property="og:url" content="https://roufsweb.github.io/cloudflared-android/">
   <meta property="og:title" content="Cloudflared for Android – Native Zero Trust Tunnel Client">
   <meta property="og:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Expose local web servers, Termux, and IoT services securely.">
+  <meta property="og:image" content="https://roufsweb.github.io/cloudflared-android/app-ui.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://roufsweb.github.io/cloudflared-android/">
   <meta property="twitter:title" content="Cloudflared for Android – Native Zero Trust Tunnel Client">
   <meta property="twitter:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Expose local web servers, Termux, and IoT services securely.">
+  <meta property="twitter:image" content="https://roufsweb.github.io/cloudflared-android/app-ui.png">
 
   <!-- Structured Data / JSON-LD -->
   <script type="application/ld+json">
@@ -29,6 +32,7 @@
     "name": "Cloudflared for Android",
     "operatingSystem": "Android 5.0+",
     "applicationCategory": "NetworkingApplication",
+    "image": "https://roufsweb.github.io/cloudflared-android/app-ui.png",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -70,9 +74,8 @@
       overflow-x: hidden;
     }
 
-    /* Container */
     .container {
-      max-width: 1080px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 0 1.5rem;
     }
@@ -102,16 +105,20 @@
       color: var(--text-main);
     }
     .brand-icon {
-      width: 2rem;
-      height: 2rem;
+      width: 2.2rem;
+      height: 2.2rem;
       border-radius: 0.5rem;
-      background: linear-gradient(135deg, var(--accent-cf), #d97706);
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 1.1rem;
-      color: #fff;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+    }
+    .brand-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .nav-links {
       display: flex;
@@ -145,11 +152,16 @@
       border-color: var(--accent-blue);
     }
 
-    /* Hero */
-    .hero {
-      padding: 5rem 0 3.5rem;
-      text-align: center;
-      position: relative;
+    /* Hero Section */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 3.5rem;
+      padding: 4.5rem 0 3.5rem;
+    }
+    .hero-text {
+      text-align: left;
     }
     .badge-pill {
       display: inline-flex;
@@ -164,30 +176,26 @@
       border-radius: 9999px;
       margin-bottom: 1.5rem;
     }
-    .hero h1 {
-      font-size: 3rem;
+    .hero-text h1 {
+      font-size: 2.85rem;
       font-weight: 800;
       line-height: 1.15;
       letter-spacing: -0.03em;
       margin-bottom: 1.25rem;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
     }
-    .hero h1 span {
+    .hero-text h1 span {
       background: linear-gradient(135deg, #fff 40%, var(--accent-cf));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .hero p {
-      font-size: 1.15rem;
+    .hero-text p {
+      font-size: 1.1rem;
       color: var(--text-muted);
-      max-width: 680px;
-      margin: 0 auto 2.25rem;
+      margin-bottom: 2rem;
+      line-height: 1.65;
     }
     .hero-actions {
       display: flex;
-      justify-content: center;
       align-items: center;
       gap: 1rem;
       flex-wrap: wrap;
@@ -224,12 +232,84 @@
       border-color: var(--text-muted);
     }
 
+    /* Phone Mockup Frame */
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+    .phone-mockup {
+      width: 290px;
+      background: #1e293b;
+      border-radius: 42px;
+      padding: 10px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 40px rgba(243, 128, 32, 0.15);
+      position: relative;
+    }
+    .phone-mockup::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 12px;
+      background: #0f172a;
+      border-radius: 10px;
+      z-index: 10;
+    }
+    .phone-screen {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 34px;
+      background: #000;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    /* UI Showcase Section */
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+      margin-top: 2rem;
+    }
+    .ui-callouts {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .ui-callout-item {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      transition: border-color 0.15s ease;
+    }
+    .ui-callout-item:hover {
+      border-color: var(--accent-cf);
+    }
+    .ui-callout-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .ui-callout-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
     /* Feature Grid */
     .features {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
-      margin: 4rem 0;
+      margin: 3.5rem 0;
     }
     .feature-card {
       background: var(--surface);
@@ -255,9 +335,9 @@
       font-size: 0.95rem;
     }
 
-    /* Section Styles */
+    /* Sections */
     section {
-      padding: 4rem 0;
+      padding: 4.5rem 0;
       border-top: 1px solid var(--surface-border);
     }
     .section-header {
@@ -418,8 +498,12 @@
       text-decoration: underline;
     }
 
-    @media (max-width: 768px) {
-      .hero h1 { font-size: 2.25rem; }
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 2.5rem; }
+      .hero-text { text-align: center; }
+      .hero-text h1 { font-size: 2.35rem; }
+      .hero-actions { justify-content: center; }
+      .showcase-grid { grid-template-columns: 1fr; }
       .step-card { flex-direction: column; gap: 1rem; }
       .nav-links { gap: 1rem; }
     }
@@ -431,10 +515,13 @@
   <header>
     <div class="container nav">
       <a href="#" class="brand">
-        <div class="brand-icon">C</div>
+        <div class="brand-icon">
+          <img src="icon.png" alt="Cloudflared Android Logo">
+        </div>
         <span>Cloudflared Android</span>
       </a>
       <div class="nav-links">
+        <a href="#showcase">Interface</a>
         <a href="#quickstart">Quickstart</a>
         <a href="#usecases">Use Cases</a>
         <a href="#persistence">Reliability</a>
@@ -451,21 +538,34 @@
 
   <!-- Hero Section -->
   <main>
-    <div class="container hero">
-      <div class="badge-pill">Native &bull; Non-Root &bull; Android 5.0 to 15</div>
-      <h1>Expose Local Android Servers to the Internet with <span>Cloudflare Zero Trust</span></h1>
-      <p>A native, high-performance wrapper for Cloudflare Tunnel (cloudflared). Host Termux servers, local APIs, and homelab nodes on Android without root or port forwarding.</p>
-      
-      <div class="hero-actions">
-        <a href="https://github.com/roufsweb/cloudflared-android/releases" class="btn-primary" target="_blank" rel="noopener">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download Latest APK
-        </a>
-        <a href="#quickstart" class="btn-secondary">Setup Walkthrough</a>
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-text">
+          <div class="badge-pill">Native &bull; Non-Root &bull; Android 5.0 to 15</div>
+          <h1>Expose Local Android Servers to the Internet with <span>Cloudflare Zero Trust</span></h1>
+          <p>A native, high-performance wrapper for Cloudflare Tunnel (cloudflared). Host Termux servers, local APIs, and homelab nodes on Android without root, PRoot, or port forwarding.</p>
+          
+          <div class="hero-actions">
+            <a href="https://github.com/roufsweb/cloudflared-android/releases" class="btn-primary" target="_blank" rel="noopener">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download Latest APK
+            </a>
+            <a href="#quickstart" class="btn-secondary">Setup Walkthrough</a>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="phone-mockup">
+            <picture>
+              <source srcset="app-ui.webp" type="image/webp">
+              <img src="app-ui.png" alt="Cloudflared for Android UI Screenshot" class="phone-screen" width="270" height="570">
+            </picture>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -498,6 +598,61 @@
         </div>
       </div>
     </div>
+
+    <!-- UI Showcase Section -->
+    <section id="showcase">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Native App Interface</div>
+          <h2 class="section-title">Built for Simplicity & Control</h2>
+        </div>
+
+        <div class="showcase-grid">
+          <div style="display: flex; justify-content: center;">
+            <div class="phone-mockup" style="width: 280px;">
+              <picture>
+                <source srcset="app-ui.webp" type="image/webp">
+                <img src="app-ui.png" alt="Cloudflared Android Application Interface" class="phone-screen" width="260" height="550">
+              </picture>
+            </div>
+          </div>
+
+          <div class="ui-callouts">
+            <div class="ui-callout-item">
+              <div class="ui-callout-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                Real-Time Tunnel Telemetry
+              </div>
+              <div class="ui-callout-desc">The high-contrast status card provides live feedback showing connection states: Connected, Disconnected, or Error diagnostics.</div>
+            </div>
+
+            <div class="ui-callout-item">
+              <div class="ui-callout-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                Smart Token Sanitization
+              </div>
+              <div class="ui-callout-desc">Automatically strips command line wrappers like <code>cloudflared service install</code> and extracts your clean Base64 token on paste.</div>
+            </div>
+
+            <div class="ui-callout-item">
+              <div class="ui-callout-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Direct Boot & Configurable Delay
+              </div>
+              <div class="ui-callout-desc">Enable "Start on Boot" with customizable delay in seconds to ensure Wi-Fi or LTE networks are fully initialized before connection.</div>
+            </div>
+
+            <div class="ui-callout-item">
+              <div class="ui-callout-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+                Integrated Engine Updates
+              </div>
+              <div class="ui-callout-desc">Checks for upstream Cloudflare releases and applies binary updates with a single tap directly within the app.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Quick Start -->
     <section id="quickstart">
