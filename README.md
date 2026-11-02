@@ -176,5 +176,12 @@ app/build/outputs/apk/release/cloudflared-android.apk
 
 ---
 
+## Contributors & Acknowledgments
+
+* **Abdur Rouf** ([@roufsweb](https://github.com/roufsweb)) - Project Creator & Maintainer
+* **Google Antigravity** ([@google-antigravity](https://github.com/google-antigravity)) - Architecture, Universal Token Parser & Engineering Contributor
+
+---
+
 ## Disclaimer
 Cloudflare, Cloudflare Tunnel, and Cloudflare Zero Trust are registered trademarks of Cloudflare, Inc. This project is an independent open-source client and is not affiliated with or endorsed by Cloudflare.
