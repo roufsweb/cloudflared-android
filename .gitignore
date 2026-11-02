@@ -1,27 +1,28 @@
+# Build and IDE
 *.iml
-.gradle
-/local.properties
-/.idea/caches/build_file_checksums.ser
-/.idea/caches/resolve.scopes
-/.idea/compiler.xml
-/.idea/encodings.xml
-/.idea/gradle.xml
-/.idea/misc.xml
-/.idea/modules.xml
-/.idea/runConfigurations.xml
-/.idea/vcs.xml
-/.idea/workspace.xml
-/.DS_Store
+.gradle/
 /build
-/captures
-.externalNativeBuild
-.cxx
+app/build/
 local.properties
 .idea/
-cloudflared-wrapper.apk
-cloudflared.exe
-cloudflared-linux-arm64
-gradle-8.5-bin.zip
-gradle-8.5/
-app/build/
+.cxx/
+.externalNativeBuild/
+/captures
+
+# Loose binaries and archives in root
+/cloudflared.exe
+/cloudflared-linux-arm64
+/cloudflared-wrapper.apk
 *.apk
+*.aab
+gradle-*.zip
+gradle-*/
+
+# Scratch and test files
+scratch/
+test.txt
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db

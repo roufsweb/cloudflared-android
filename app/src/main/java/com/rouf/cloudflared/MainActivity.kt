@@ -1,6 +1,7 @@
 package com.rouf.cloudflared
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -25,6 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -90,8 +93,50 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
     var autoStart by remember { mutableStateOf(prefs.autoStart) }
     var startDelay by remember { mutableStateOf(prefs.startDelaySeconds.toString()) }
     
+    var showPermissionDialog by remember { mutableStateOf(false) }
+    var permissionType by remember { mutableStateOf("") } // "notification" or "battery"
+
     val status by CloudflaredService.status.collectAsState()
     val updateStatus by UpdateManager.updateStatus.collectAsState()
+
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text(if (permissionType == "notification") "Notification Permission" else "Battery Optimization") },
+            text = { 
+                Text(
+                    if (permissionType == "notification") 
+                        "Cloudflared needs notification permission to stay active in the background and show the current tunnel status."
+                    else 
+                        "To ensure the tunnel starts reliably after boot and doesn't get killed, please exclude Cloudflared from battery optimizations."
+                ) 
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionDialog = false
+                    if (permissionType == "notification") {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                             // This is handled in MainActivity usually, but for simplicity here:
+                             val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                 putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                             }
+                             context.startActivity(intent)
+                        }
+                    } else {
+                        FlavorUtils.requestBatteryOptimization(context)
+                    }
+                }) {
+                    Text("Grant")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("Later")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -207,7 +252,13 @@ fun CloudflaredApp(prefs: AppPreferences, onStartService: () -> Unit, onStopServ
                 onCheckedChange = {
                     autoStart = it
                     prefs.autoStart = it
-                    if (it) FlavorUtils.requestBatteryOptimization(context)
+                    if (it) {
+                        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                        if (!pm.isIgnoringBatteryOptimizations(context.packageName)) {
+                            permissionType = "battery"
+                            showPermissionDialog = true
+                        }
+                    }
                 }
             )
         }

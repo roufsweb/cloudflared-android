@@ -7,10 +7,6 @@ import android.os.PowerManager
 import android.provider.Settings
 
 object FlavorUtils {
-    fun updateMagiskScript(context: Context, enabled: Boolean, delay: Int) {
-        // No-op in consolidated non-root version
-    }
-
     fun requestBatteryOptimization(context: Context) {
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         if (!powerManager.isIgnoringBatteryOptimizations(context.packageName)) {

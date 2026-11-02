@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudflared for Android – Native Cloudflare Zero Trust Tunnel Client</title>
+  <meta name="description" content="High-performance native Cloudflare Tunnel (cloudflared) client for Android without root. Expose Termux web servers, local APIs, and homelab services to the internet securely.">
+  <meta name="keywords" content="cloudflared android, cloudflare tunnel android, cloudflare zero trust android apk, termux cloudflared, ngrok alternative android, expose localhost android, non root cloudflare tunnel">
+  <meta name="author" content="roufsweb">
+  <link rel="canonical" href="https://roufsweb.github.io/cloudflared-android/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://roufsweb.github.io/cloudflared-android/">
+  <meta property="og:title" content="Cloudflared for Android – Native Zero Trust Tunnel Client">
+  <meta property="og:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Expose local web servers, Termux, and IoT services securely.">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://roufsweb.github.io/cloudflared-android/">
+  <meta property="twitter:title" content="Cloudflared for Android – Native Zero Trust Tunnel Client">
+  <meta property="twitter:description" content="Run Cloudflare Tunnel natively on Android without root or PRoot. Expose local web servers, Termux, and IoT services securely.">
+
+  <!-- Structured Data / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Cloudflared for Android",
+    "operatingSystem": "Android 5.0+",
+    "applicationCategory": "NetworkingApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Native implementation of Cloudflare Tunnel (cloudflared) for Android without root.",
+    "downloadUrl": "https://github.com/roufsweb/cloudflared-android/releases",
+    "author": {
+      "@type": "Person",
+      "name": "roufsweb",
+      "url": "https://github.com/roufsweb"
+    }
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #111827;
+      --surface-border: #1f293d;
+      --surface-hover: #172136;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-cf: #f38020;
+      --accent-cf-hover: #faad3f;
+      --accent-blue: #38bdf8;
+      --accent-green: #10b981;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font);
+      line-height: 1.6;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Navigation */
+    header {
+      border-bottom: 1px solid var(--surface-border);
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 4.25rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-cf), #d97706);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+    .nav-links a:hover {
+      color: var(--text-main);
+    }
+    .btn-github {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-main) !important;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .btn-github:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent-blue);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+      position: relative;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(243, 128, 32, 0.12);
+      border: 1px solid rgba(243, 128, 32, 0.3);
+      color: var(--accent-cf);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, #fff 40%, var(--accent-cf));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 2.25rem;
+    }
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cf), #d97706);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.85rem 1.85rem;
+      border-radius: 0.6rem;
+      text-decoration: none;
+      box-shadow: 0 10px 25px -5px rgba(243, 128, 32, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -5px rgba(243, 128, 32, 0.5);
+    }
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-main);
+      font-weight: 600;
+      padding: 0.85rem 1.75rem;
+      border-radius: 0.6rem;
+      text-decoration: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Feature Grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 4rem 0;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 0.75rem;
+      padding: 1.75rem;
+      transition: border-color 0.15s ease;
+    }
+    .feature-card:hover {
+      border-color: var(--accent-blue);
+    }
+    .feature-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .feature-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Section Styles */
+    section {
+      padding: 4rem 0;
+      border-top: 1px solid var(--surface-border);
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .section-tag {
+      color: var(--accent-cf);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      max-width: 840px;
+      margin: 0 auto;
+    }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      display: flex;
+      gap: 1.5rem;
+    }
+    .step-number {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .step-content h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+    .step-content p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 0.85rem;
+    }
+
+    /* Code Blocks */
+    pre {
+      background: #060910;
+      border: 1px solid var(--surface-border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      position: relative;
+    }
+    code {
+      font-family: var(--mono);
+      color: var(--accent-blue);
+      font-size: 0.9em;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.25rem;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* Vendor Table */
+    .table-wrapper {
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 0.75rem;
+      margin-top: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.92rem;
+    }
+    th, td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--surface-border);
+    }
+    th {
+      background: #0d131f;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    td strong {
+      color: #fff;
+    }
+
+    /* FAQ */
+    .faq-list {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 0.6rem;
+      padding: 1.25rem 1.5rem;
+    }
+    .faq-item h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+    .faq-item p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--surface-border);
+      padding: 3rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+    footer a {
+      color: var(--text-main);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.25rem; }
+      .step-card { flex-direction: column; gap: 1rem; }
+      .nav-links { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <a href="#" class="brand">
+        <div class="brand-icon">C</div>
+        <span>Cloudflared Android</span>
+      </a>
+      <div class="nav-links">
+        <a href="#quickstart">Quickstart</a>
+        <a href="#usecases">Use Cases</a>
+        <a href="#persistence">Reliability</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/roufsweb/cloudflared-android" class="btn-github" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <div class="container hero">
+      <div class="badge-pill">Native &bull; Non-Root &bull; Android 5.0 to 15</div>
+      <h1>Expose Local Android Servers to the Internet with <span>Cloudflare Zero Trust</span></h1>
+      <p>A native, high-performance wrapper for Cloudflare Tunnel (cloudflared). Host Termux servers, local APIs, and homelab nodes on Android without root or port forwarding.</p>
+      
+      <div class="hero-actions">
+        <a href="https://github.com/roufsweb/cloudflared-android/releases" class="btn-primary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download Latest APK
+        </a>
+        <a href="#quickstart" class="btn-secondary">Setup Walkthrough</a>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="container">
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-title">No Root Required</div>
+          <div class="feature-desc">Executes within the standard Android application sandbox. No Magisk, superuser, or custom kernels needed.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Kernel Stdin DNS Patch</div>
+          <div class="feature-desc">Solves Android's absence of <code>/etc/resolv.conf</code> by piping upstream resolvers (1.1.1.1) directly via <code>//proc/self/fd/0</code>.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Direct Boot Auto-Start</div>
+          <div class="feature-desc">Automatically resumes tunnel sessions immediately after system reboot (<code>LOCKED_BOOT_COMPLETED</code>) before unlock.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Bypasses CGNAT & Firewalls</div>
+          <div class="feature-desc">Establishes secure outbound QUIC and HTTP/2 connections to Cloudflare Edge. No router port forwarding required.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">24/7 Background Uptime</div>
+          <div class="feature-desc">Foreground service architecture with WakeLock and battery optimization handling to prevent OS termination.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Termux Ready</div>
+          <div class="feature-desc">Expose web servers, Flask, Node.js, and Python microservices hosted locally in Termux directly to custom domains.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Start -->
+    <section id="quickstart">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Step-by-Step Tutorial</div>
+          <h2 class="section-title">Getting Started in 3 Steps</h2>
+        </div>
+
+        <div class="steps">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Create a Tunnel in Cloudflare Zero Trust</h3>
+              <p>Log in to the <a href="https://one.dash.cloudflare.com/" target="_blank" rel="noopener" style="color: var(--accent-blue);">Cloudflare Zero Trust Dashboard</a>. Go to <strong>Networks</strong> &gt; <strong>Tunnels</strong> &gt; <strong>Add a tunnel</strong>.</p>
+              <p>Select <strong>Cloudflared</strong>, enter a name, and under <em>Install and run a connector</em>, copy the <code>--token</code> value from the command line:</p>
+              <pre><code>cloudflared.exe service install eyJhIjoiYmNmNGM3...</code></pre>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Install App &amp; Paste Token</h3>
+              <p>Install <code>cloudflared-android.apk</code> on your device. Open the app, paste your base64 token into the <strong>Tunnel Token</strong> field, and tap <strong>Connect Tunnel</strong>.</p>
+              <p>Grant <strong>Notification Permission</strong> and approve the prompt to <strong>Ignore Battery Optimizations</strong> so Android does not suspend the background service.</p>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Route Inbound Public Hostname</h3>
+              <p>Back in your Cloudflare dashboard under the <strong>Public Hostnames</strong> tab, configure a route pointing to your Android local service:</p>
+              <pre><code>Public Hostname: mydevice.yourdomain.com
+Service Type:    HTTP
+URL:             localhost:8080</code></pre>
+              <p>Traffic to <code>https://mydevice.yourdomain.com</code> is now routed directly and securely to your phone or tablet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section id="usecases">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Real-World Examples</div>
+          <h2 class="section-title">What You Can Build</h2>
+        </div>
+
+        <div class="features">
+          <div class="feature-card">
+            <div class="feature-title">Exposing Termux Web Applications</div>
+            <div class="feature-desc">
+              Host Python APIs, Node.js web apps, or static websites on your mobile device and serve them globally:
+              <pre style="margin-top: 0.75rem;"><code># In Termux: Launch server
+python3 -m http.server 8080
+
+# Mapped via Cloudflare to:
+# https://api.yourdomain.com</code></pre>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-title">Repurposed Android Homelab</div>
+            <div class="feature-desc">
+              Turn an unused phone into an ultra-low-power server hosting Home Assistant dashboards, PocketBase instances, or webhook endpoints for GitHub and Stripe.
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-title">Unlimited Ngrok Alternative</div>
+            <div class="feature-desc">
+              No session timeouts, no randomized dynamic URLs, and no monthly fees. Connect your custom domain directly through Cloudflare's free Zero Trust plan.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Background Persistence -->
+    <section id="persistence">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Device Settings</div>
+          <h2 class="section-title">24/7 Background Execution Guide</h2>
+        </div>
+        <p style="text-align: center; color: var(--text-muted); max-width: 680px; margin: 0 auto 2rem;">
+          Aggressive battery-saving algorithms in custom Android skins can kill background services. Configure your device manufacturer's settings for uninterrupted uptime:
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Manufacturer / OS</th>
+                <th>Menu Navigation</th>
+                <th>Required Configuration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Google Pixel / AOSP</strong></td>
+                <td>Settings &gt; Apps &gt; Cloudflared &gt; App battery usage</td>
+                <td>Set to <code>Unrestricted</code></td>
+              </tr>
+              <tr>
+                <td><strong>Samsung (One UI)</strong></td>
+                <td>Settings &gt; Battery &gt; Background usage limits</td>
+                <td>Add Cloudflared to <code>Never sleeping apps</code></td>
+              </tr>
+              <tr>
+                <td><strong>Xiaomi (HyperOS / MIUI)</strong></td>
+                <td>App Info &gt; Battery saver &amp; Autostart</td>
+                <td>Select <code>No restrictions</code> and enable <code>Autostart</code></td>
+              </tr>
+              <tr>
+                <td><strong>OnePlus / Oppo / Realme</strong></td>
+                <td>App Info &gt; Battery usage</td>
+                <td>Enable <code>Allow background activity</code> and <code>Allow auto-launch</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Common Questions</div>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-list">
+          <div class="faq-item">
+            <h4>Does this application require root access?</h4>
+            <p>No. Cloudflared for Android operates completely within the unprivileged Android application sandbox. It uses custom stdin descriptor redirection to provide DNS resolution natively without superuser rights.</p>
+          </div>
+          <div class="faq-item">
+            <h4>Can I expose services running inside Termux?</h4>
+            <p>Yes. Any web service, API, or socket bound to <code>localhost</code> or <code>127.0.0.1</code> in Termux can be accessed by the Cloudflared service and exposed through your public hostname.</p>
+          </div>
+          <div class="faq-item">
+            <h4>How does this bypass CGNAT and mobile carrier firewalls?</h4>
+            <p>Traditional hosting requires an open incoming port, which mobile carriers block via Carrier-Grade NAT (CGNAT). Cloudflared establishes outbound encrypted QUIC/HTTP2 connections to Cloudflare's edge network, completely eliminating the need for inbound ports.</p>
+          </div>
+          <div class="faq-item">
+            <h4>Will this drain my device's battery?</h4>
+            <p>The native engine is lightweight and consumes minimal CPU when idle. When configured with appropriate battery exemptions, it typically consumes under 2-3% of battery over a full 24-hour period.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p style="margin-bottom: 0.5rem;">
+        Cloudflared for Android is an independent open-source project released under the <a href="https://github.com/roufsweb/cloudflared-android/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.
+      </p>
+      <p style="color: #64748b; font-size: 0.8rem;">
+        Cloudflare, Cloudflare Tunnel, and Cloudflare Zero Trust are registered trademarks of Cloudflare, Inc.
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
