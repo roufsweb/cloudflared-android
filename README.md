@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Release](https://img.shields.io/badge/Release-v1.2.0-0366d6.svg)](https://github.com/roufsweb/cloudflared-android/releases/tag/v1.2.0)
 [![Documentation & User Guide](https://img.shields.io/badge/User%20Guide-Online%20Documentation-orange.svg)](https://roufsweb.github.io/cloudflared-android/)
+[![Donate with Ethereum](https://img.shields.io/badge/Donate-Ethereum%20(ETH)-627EEA?logo=ethereum&logoColor=white)](#support--donations)
 
 A lightweight, high-performance native implementation of Cloudflare Tunnel (`cloudflared`) engineered specifically for Android. Expose local web applications, APIs, Termux environments, and home servers to the public internet using Cloudflare Zero Trust without requiring root permissions, dynamic DNS, or router port-forwarding.
 
@@ -173,6 +174,36 @@ The output package will be generated at:
 ```text
 app/build/outputs/apk/release/cloudflared-android.apk
 ```
+
+---
+
+## Support & Donations
+
+If this project is helpful for your homelab, server, or mobile setup and you would like to support ongoing development and maintenance, voluntary donations are gratefully accepted. Development is fully open-source with no commercial obligations, tiers, or paywalls.
+
+<table>
+  <tr>
+    <td align="center" width="160px">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=0x609e0AB78d5174F72fF8709564f8337DebEa5BD7&margin=5" width="140" height="140" alt="Ethereum QR Code" /><br />
+      <sub>Scan via Mobile Wallet</sub>
+    </td>
+    <td>
+      <b>Network:</b> Ethereum (ETH / ERC-20 Tokens)<br />
+      <b>Supported Wallets:</b> MetaMask, Trust Wallet, Coinbase Wallet, Ledger, Rainbow<br />
+      <b>Wallet Address:</b>
+      <br /><br />
+      <code>0x609e0AB78d5174F72fF8709564f8337DebEa5BD7</code>
+      <br /><br />
+      <a href="https://metamask.app.link/send/0x609e0AB78d5174F72fF8709564f8337DebEa5BD7">
+        <img src="https://img.shields.io/badge/MetaMask-Send%20ETH-E17726?logo=metamask&logoColor=white" alt="Open in MetaMask" />
+      </a>
+      &nbsp;
+      <a href="https://etherscan.io/address/0x609e0AB78d5174F72fF8709564f8337DebEa5BD7" target="_blank" rel="noopener">
+        <img src="https://img.shields.io/badge/Etherscan-View%20on%20Explorer-3B82F6?logo=ethereum&logoColor=white" alt="View on Etherscan" />
+      </a>
+    </td>
+  </tr>
+</table>
 
 ---
 
