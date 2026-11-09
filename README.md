@@ -5,12 +5,12 @@
 [![Architecture](https://img.shields.io/badge/Architecture-ARM64--v8a-blue)](https://github.com/cloudflare/cloudflared)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Release](https://img.shields.io/badge/Release-v1.2.0-0366d6.svg)](https://github.com/roufsweb/cloudflared-android/releases/tag/v1.2.0)
-[![Documentation & User Guide](https://img.shields.io/badge/User%20Guide-Online%20Documentation-orange.svg)](https://roufsweb.github.io/cloudflared-android/)
+[![Documentation & User Guide](https://img.shields.io/badge/User%20Guide-Online%20Documentation-orange.svg)](https://cloudflared-android.roufsweb.com/)
 [![Donate with Ethereum](https://img.shields.io/badge/Donate-Ethereum%20(ETH)-627EEA?logo=ethereum&logoColor=white)](#support--donations)
 
 A lightweight, high-performance native implementation of Cloudflare Tunnel (`cloudflared`) engineered specifically for Android. Expose local web applications, APIs, Termux environments, and home servers to the public internet using Cloudflare Zero Trust without requiring root permissions, dynamic DNS, or router port-forwarding.
 
-*Interactive step-by-step setup walkthrough and troubleshooting guide:* **[roufsweb.github.io/cloudflared-android](https://roufsweb.github.io/cloudflared-android/)**
+*Interactive step-by-step setup walkthrough and troubleshooting guide:* **[cloudflared-android.roufsweb.com](https://cloudflared-android.roufsweb.com/)**
 
 ---
 
@@ -154,7 +154,7 @@ To ensure uninterrupted 24/7 tunnel execution across device manufacturers:
 | **Xiaomi (HyperOS / MIUI)** | App Info > Battery saver | **No restrictions** & enable **Autostart** |
 | **OnePlus / Oppo / Realme** | App Info > Battery usage | Enable **Allow background activity** & **Allow auto-launch** |
 
-For comprehensive guides, visit the online documentation at [roufsweb.github.io/cloudflared-android](https://roufsweb.github.io/cloudflared-android/).
+For comprehensive guides, visit the online documentation at [cloudflared-android.roufsweb.com](https://cloudflared-android.roufsweb.com/).
 
 ---
 
